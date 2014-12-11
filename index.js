@@ -59,10 +59,10 @@ function transform(content, opts) {
     return content;
   }
 
-  var patt = /templateUrl\:[^\'\"]*(\'|\")([^\'\"]+)(\'|\")/gm;
+  var templateUrlRegExp = /templateUrl\:[^\'\"]*(\'|\")([^\'\"]+)(\'|\")/gm;
 
   var output = content.toString();
-  var templateUrlDirective = patt.exec(output);
+  var templateUrlDirective = templateUrlRegExp.exec(output);
   var templateUrl = path.join(opts.root, templateUrlDirective[2]);
   var template = fs.readFileSync( templateUrl , 'utf8');
 
