@@ -70,4 +70,4 @@ The options default is:
 
 ## Credits
 
-This plugin is based on the [gulp-expand-template-url])(https://www.npmjs.com/package/gulp-expand-template-url)
+This plugin is based on the [gulp-expand-template-url](https://www.npmjs.com/package/gulp-expand-template-url).
