@@ -1,0 +1,36 @@
+{
+  "name": "gulp-directive-replace",
+  "version": "0.1.0",
+  "description": "A gulp task to replace templateUrl by html template",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:brunobertolini/gulp-directive-replace.git"
+  },
+  "keywords": [
+    "gulp-plugin",
+    "angularjs",
+    "replace",
+    "directive",
+    "templateUrl",
+    "template-url",
+    "tempateUrl",
+    "to",
+    "template"
+  ],
+  "author": "Bruno Bertolini <dev@brunobertolini.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/brunobertolini/gulp-directive-replace/issues"
+  },
+  "homepage": "https://github.com/brunobertolini/gulp-directive-replace",
+  "dependencies": {
+    "through2": "^0.4.1",
+    "lodash": "^2.4.1",
+    "gulp-util": "^2.2.14",
+    "html-minifier": "^0.6.9"
+  }
+}
