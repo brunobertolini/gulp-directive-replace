@@ -31,6 +31,6 @@
     "through2": "^0.4.1",
     "lodash": "^2.4.1",
     "gulp-util": "^2.2.14",
-    "html-minifier": "^0.6.9"
+    "minimize": "^1.0.0"
   }
 }

@@ -54,19 +54,7 @@ directiveReplace({root: 'app'})
 
 Html minifier options.
 
-This options is passed directly to [html-minifier](https://www.npmjs.com/package/html-minifier), and options documentation is [here](http://perfectionkills.com/experimenting-with-html-minifier/#options)
-
-The options default is:
-
-```
-{
-    root: '',
-    minify: {
-        removeComments: true,
-        collapseWhitespace:true
-    }
-}
-```
+This options is passed directly to [Minimize](https://www.npmjs.com/package/minimize).
 
 ## Credits
 

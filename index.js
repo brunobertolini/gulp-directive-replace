@@ -5,16 +5,13 @@ var gutil   = require('gulp-util');
 var through = require('through2');
 var lodash  = require('lodash');
 var path    = require('path');
-var htmlMinifier    = require('html-minifier').minify;
+var Minimize = require('minimize');
 
 function templateTransformPlugin(options) {
 
   var defaultOptions = {
     root: '',
-    minify: {
-      removeComments: true,
-      collapseWhitespace:true
-    }
+    minify: {}
   };
 
   var opts = lodash.extend(defaultOptions, options);
@@ -38,7 +35,8 @@ function templateTransformPlugin(options) {
 
     try {
       var contents = file.contents.toString();
-      file.contents = new Buffer(transform(contents, opts));
+      // file.contents = new Buffer(transform(contents, opts));
+      transform(file, contents, opts);
     } catch (err) {
       err.fileName = file.path;
       _this.emit('error', pluginError(err));
@@ -50,10 +48,10 @@ function templateTransformPlugin(options) {
 }
 
 function pluginError(msg) {
-  return new gutil.PluginError('gulp-strip-line', msg);
+  return new gutil.PluginError('gulp-directive-replace', msg);
 }
 
-function transform(content, opts) {
+function transform(file, content, opts) {
 
   if (!content) {
     return content;
@@ -66,9 +64,16 @@ function transform(content, opts) {
   var templateUrl = path.join(opts.root, templateUrlDirective[2]);
   var template = fs.readFileSync( templateUrl , 'utf8');
 
-  template = htmlMinifier(template, opts.minify);
 
-  return output.replace(templateUrlRegExp, 'template: \'' + template + '\'');
+  var minimize = new Minimize(opts.minify);
+  minimize.parse(template, function (err, data) {
+      if (err) {
+        return callback(pluginError(err));
+      }
+
+      var result = output.replace(templateUrlRegExp, 'template: \'' + data + '\'');
+      file.contents = new Buffer(result);
+  });
 }
 
 module.exports = templateTransformPlugin;
