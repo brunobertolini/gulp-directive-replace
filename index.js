@@ -61,6 +61,12 @@ function transform(file, content, opts) {
 
   var output = content.toString();
   var templateUrlDirective = templateUrlRegExp.exec(output);
+
+  if (!templateUrlDirective) {
+    /* exits if the directive doesn't have templateUrl */
+    return;
+  }
+
   var templateUrl = path.join(opts.root, templateUrlDirective[2]);
   var template = fs.readFileSync( templateUrl , 'utf8');
 
