@@ -77,7 +77,8 @@ function transform(file, content, opts) {
         return callback(pluginError(err));
       }
 
-      var result = output.replace(templateUrlRegExp, 'template: \'' + data + '\'');
+      var result = output.replace(templateUrlRegExp, 'template: \'' + data.replace(new RegExp("[']", 'g'), "\\'") + '\'');
+
       file.contents = new Buffer(result);
   });
 }
