@@ -1,5 +1,9 @@
 # Gulp Directive Replace
 
+[![Dependency Status](https://gemnasium.com/brunobertolini/gulp-directive-replace.svg)](https://gemnasium.com/brunobertolini/gulp-directive-replace)
+
+[![NPM](https://nodei.co/npm/gulp-directive-replace.png?downloads=true)](https://nodei.co/npm/gulp-directive-replace/)
+
 Replace templateUrl by minified html template
 
 ## Installation
