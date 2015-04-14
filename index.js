@@ -63,10 +63,14 @@ function transformSourceFile (file, content, opts) {
   var templateContent = getTemplateContent(templateUrl);
   var minimize = new Minimize(opts.minify);
 
+  minimize.parse(templateContent, transformMinimized);
 
   ////////////
 
   function extractTemplateUrl (contents) {
+    var regex = templateUrlRegex,
+        match = regex.exec(contents),
+        hasTemplateUrl = match && match[2];
     return hasTemplateUrl ? path.join(opts.root, match[2]) : false;
   }
 
@@ -74,10 +78,12 @@ function transformSourceFile (file, content, opts) {
     return fs.readFileSync(templateUrl, 'utf8');
   }
 
+  function transformMinimized (err, minimizedTemplate) {
     if (err) {
       return callback(pluginError(err));
     }
 
+    var escapedTemplate = escapeString(minimizedTemplate);
     var injectedTemplate = 'template: \'' + escapedTemplate + '\'';
     var gulpSrcFileOutput = gulpSrcFileContent.replace(templateUrlRegex, injectedTemplate);
 
