@@ -11,13 +11,13 @@
     "url": "git@github.com:brunobertolini/gulp-directive-replace.git"
   },
   "keywords": [
+    "gulpplugin",
     "gulp-plugin",
     "angularjs",
     "replace",
     "directive",
     "templateUrl",
     "template-url",
-    "tempateUrl",
     "to",
     "template"
   ],

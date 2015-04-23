@@ -1,111 +1,85 @@
 'use strict';
 
-var fs = require('fs');
-var gutil = require('gulp-util');
-var through = require('through2');
-var lodash = require('lodash');
-var path = require('path');
 var Minimize = require('minimize');
+var through = require('through2');
+var gutil = require('gulp-util');
+var loadash = require('lodash');
+var path = require('path');
+var fs = require('fs');
 
-module.exports = injectTemplateModule;
+// Consts
+var PLUGIN_NAME = 'gulp-directive-replace';
 
-////////////////////////////////////////////////////////////
+module.exports = function (opts) {
+    var defaultOpts = {
+        root: '',
+        minify: {}
+    };
 
-function injectTemplateModule (options) {
-  var defaultOptions = {
-    root: '',
-    minify: {}
-  };
-  var opts = lodash.extend(defaultOptions, options);
-  return through.obj(objectStream);
+    opts = loadash.merge(defaultOpts, opts || {});
 
-  ////////////
+    return through.obj(function(file, enc, cb) {
 
-  function objectStream (file, enc, cb) {
-    var _this = this;
+        if (file.isNull()) {
+          cb(null, file);
+        }
 
-    if (file.isNull()) {
-      this.push(file);
-      return cb();
-    }
+        if (file.isStream()) {
+            cb(new gutil.PluginError(PLUGIN_NAME, 'Streaming not supported'));
+            return;
+        }
 
-    if (file.isStream()) {
-      _this.emit('error', pluginError('Streaming not supported'));
-      return cb();
-    }
+        try {
+            var originalContent = file.contents.toString();
+            var templateUrlRegex = /templateUrl\:[^\'\"]*(\'|\")([^\'\"]+)(\'|\")/gm;
+            var templateUrl = extractTemplateUrl(originalContent, templateUrlRegex, opts);
 
-    try {
-      var contents = file.contents.toString();
-      transformSourceFile(file, contents, opts);
-    } catch (err) {
-      err.fileName = file.path;
-      _this.emit('error', pluginError(err));
-    }
+            if (!templateUrl) {
+                cb(null, file);
+            }
 
-    _this.push(file);
-    cb();
-  }
-}
+            var templateContent = getTemplateContent(templateUrl);
+            var minimize = new Minimize(opts.minify);
 
-function transformSourceFile (file, content, opts) {
-  if (!content) {
-    return content;
-  }
+            minimize.parse(templateContent, function(err, minimizedTemplate){
 
-  var templateUrlRegex = /templateUrl\:[^\'\"]*(\'|\")([^\'\"]+)(\'|\")/gm;
-  var gulpSrcFileContent = content.toString();
-  var templateUrl = extractTemplateUrl(gulpSrcFileContent);
+                if (err) {
+                    cb(new gutil.PluginError(PLUGIN_NAME, err, {fileName: file.path}));
+                }
 
-  if (!templateUrl) {
-    return;
-  }
+                var escapedTemplate = escapeString(minimizedTemplate);
+                var injectedTemplate = 'template: \'' + escapedTemplate + '\'';
+                var replacedContent = originalContent.replace(templateUrlRegex, injectedTemplate);
 
-  var templateContent = getTemplateContent(templateUrl);
-  var minimize = new Minimize(opts.minify);
+                file.contents = new Buffer(replacedContent);
 
-  minimize.parse(templateContent, transformMinimized);
+                cb(null, file);
+            });
 
-  ////////////
+        } catch (err) {
+            cb(new gutil.PluginError(PLUGIN_NAME, err, {fileName: file.path}));
+        }
+    });
+};
 
-  function extractTemplateUrl (contents) {
-    var regex = templateUrlRegex,
-        match = regex.exec(contents),
-        hasTemplateUrl = match && match[2];
+//////////////////////////////
+
+function extractTemplateUrl (contents, regex, opts) {
+    var match = regex.exec(contents);
+    var hasTemplateUrl = match && match[2];
+
     return hasTemplateUrl ? path.join(opts.root, match[2]) : false;
-  }
+}
 
-  function getTemplateContent (templateUrl) {
+function getTemplateContent (templateUrl) {
     return fs.readFileSync(templateUrl, 'utf8');
-  }
+}
 
-  function transformMinimized (err, minimizedTemplate) {
-    if (err) {
-      return callback(pluginError(err));
-    }
-
-    var escapedTemplate = escapeString(minimizedTemplate);
-    var injectedTemplate = 'template: \'' + escapedTemplate + '\'';
-    var gulpSrcFileOutput = gulpSrcFileContent.replace(templateUrlRegex, injectedTemplate);
-
-    file.contents = new Buffer(gulpSrcFileOutput);
-  }
-
-  function escapeString (string) {
+function escapeString (string) {
     var escapedString = string;
-    escapedString = escapeBackslash(escapedString);
-    escapedString = escapeSingleQuotes(escapedString);
+    escapedString = escapedString ? escapedString.replace(/\\/g, '\\\\') : '';
+    escapedString = escapedString ? escapedString.replace(/'/g, "\\'") : '';
+
     return escapedString;
-  }
-
-  function escapeSingleQuotes (string) {
-    return string ? string.replace(/'/g, "\\'") : '';
-  }
-
-  function escapeBackslash (string) {
-    return string ? string.replace(/\\/g, '\\\\') : '';
-  }
 }
 
-function pluginError (msg) {
-  return new gutil.PluginError('gulp-directive-replace', msg);
-}
