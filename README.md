@@ -59,7 +59,3 @@ directiveReplace({root: 'app'})
 Html minifier options.
 
 This options is passed directly to [Minimize](https://www.npmjs.com/package/minimize).
-
-## Credits
-
-This plugin is based on the [gulp-expand-template-url](https://www.npmjs.com/package/gulp-expand-template-url).
