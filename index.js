@@ -11,75 +11,77 @@ var fs = require('fs');
 var PLUGIN_NAME = 'gulp-directive-replace';
 
 module.exports = function (opts) {
-    var defaultOpts = {
-        root: '',
-        minify: {}
-    };
+  var defaultOpts = {
+    root: '',
+    minify: {}
+  };
 
-    opts = loadash.merge(defaultOpts, opts || {});
+  opts = loadash.merge(defaultOpts, opts || {});
 
-    return through.obj(function(file, enc, cb) {
+  return through.obj(function (file, enc, cb) {
 
-        if (file.isNull()) {
-          cb(null, file);
-        }
+    if (file.isNull()) {
+      return cb(null, file);
+    }
 
-        if (file.isStream()) {
-            cb(new gutil.PluginError(PLUGIN_NAME, 'Streaming not supported'));
-            return;
-        }
+    if (file.isStream()) {
+      return cb(new gutil.PluginError(PLUGIN_NAME, 'Streaming not supported'));
+    }
 
-        try {
-            var originalContent = file.contents.toString();
-            var templateUrlRegex = /templateUrl\:[^\'\"]*(\'|\")([^\'\"]+)(\'|\")/gm;
-            var templateUrl = extractTemplateUrl(originalContent, templateUrlRegex, opts);
+    try {
+      var originalContent = file.contents.toString();
+      var templateUrlRegex = /templateUrl\:[^\'\"]*(\'|\")([^\'\"]+)(\'|\")/gm;
+      var templateUrl = extractTemplateUrl(originalContent, templateUrlRegex, opts);
 
-            if (!templateUrl) {
-                cb(null, file);
-            }
+      if (!templateUrl) {
+        return cb(null, file);
+      }
 
-            var templateContent = getTemplateContent(templateUrl);
-            var minimize = new Minimize(opts.minify);
+      var templateContent = getTemplateContent(templateUrl);
+      var minimize = new Minimize(opts.minify);
 
-            minimize.parse(templateContent, function(err, minimizedTemplate){
+      minimize.parse(templateContent, escapeMinifiedContent);
 
-                if (err) {
-                    cb(new gutil.PluginError(PLUGIN_NAME, err, {fileName: file.path}));
-                }
+    } catch (err) {
+      return cb(new gutil.PluginError(PLUGIN_NAME, err, {fileName: file.path}));
+    }
 
-                var escapedTemplate = escapeString(minimizedTemplate);
-                var injectedTemplate = 'template: \'' + escapedTemplate + '\'';
-                var replacedContent = originalContent.replace(templateUrlRegex, injectedTemplate);
+    ////////////
 
-                file.contents = new Buffer(replacedContent);
+    function escapeMinifiedContent (err, minimizedTemplate) {
+      if (err) {
+        return cb(new gutil.PluginError(PLUGIN_NAME, err, {fileName: file.path}));
+      }
 
-                cb(null, file);
-            });
+      var escapedTemplate = escapeString(minimizedTemplate);
+      var injectedTemplate = 'template: \'' + escapedTemplate + '\'';
+      var replacedContent = originalContent.replace(templateUrlRegex, injectedTemplate);
 
-        } catch (err) {
-            cb(new gutil.PluginError(PLUGIN_NAME, err, {fileName: file.path}));
-        }
-    });
+      file.contents = new Buffer(replacedContent);
+
+      return cb(null, file);
+    }
+  });
 };
 
 //////////////////////////////
 
 function extractTemplateUrl (contents, regex, opts) {
-    var match = regex.exec(contents);
-    var hasTemplateUrl = match && match[2];
+  var match = regex.exec(contents);
+  var hasTemplateUrl = match && match[2];
 
-    return hasTemplateUrl ? path.join(opts.root, match[2]) : false;
+  return hasTemplateUrl ? path.join(opts.root, match[2]) : false;
 }
 
 function getTemplateContent (templateUrl) {
-    return fs.readFileSync(templateUrl, 'utf8');
+  return fs.readFileSync(templateUrl, 'utf8');
 }
 
 function escapeString (string) {
-    var escapedString = string;
-    escapedString = escapedString ? escapedString.replace(/\\/g, '\\\\') : '';
-    escapedString = escapedString ? escapedString.replace(/'/g, "\\'") : '';
+  var escapedString = string;
+  escapedString = escapedString ? escapedString.replace(/\\/g, '\\\\') : '';
+  escapedString = escapedString ? escapedString.replace(/'/g, "\\'") : '';
 
-    return escapedString;
+  return escapedString;
 }
 
