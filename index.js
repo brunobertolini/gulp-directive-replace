@@ -21,7 +21,8 @@ module.exports = function (opts) {
     return through.obj(function(file, enc, cb) {
 
         if (file.isNull()) {
-          cb(null, file);
+            cb(null, file);
+            return;
         }
 
         if (file.isStream()) {
@@ -36,6 +37,7 @@ module.exports = function (opts) {
 
             if (!templateUrl) {
                 cb(null, file);
+                return;
             }
 
             var templateContent = getTemplateContent(templateUrl);
@@ -45,6 +47,7 @@ module.exports = function (opts) {
 
                 if (err) {
                     cb(new gutil.PluginError(PLUGIN_NAME, err, {fileName: file.path}));
+                    return;
                 }
 
                 var escapedTemplate = escapeString(minimizedTemplate);
@@ -54,10 +57,12 @@ module.exports = function (opts) {
                 file.contents = new Buffer(replacedContent);
 
                 cb(null, file);
+                return;
             });
 
         } catch (err) {
             cb(new gutil.PluginError(PLUGIN_NAME, err, {fileName: file.path}));
+            return;
         }
     });
 };
