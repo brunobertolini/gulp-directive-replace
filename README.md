@@ -32,6 +32,11 @@ gulp.task('directives', function(){
 
 The path between directive templateUrl string, and gulpfile path.
 
+### domain
+
+The domain of directive templateUrl string. 
+Use if template url contains domain.
+
 Example: 
 
 Let's say you have a following folder structure
@@ -51,7 +56,7 @@ Then, your directive templateUrl is: '/partials/yourpartial.html'
 The plugin will get template url and needs find that there is a *app* folder, but will not. You need inform to it by "root" option, like this:
 
 ```
-directiveReplace({root: 'app'})
+directiveReplace({root: 'app', domain: 'http://www.example.com/'})
 ```
 
 ### minify
