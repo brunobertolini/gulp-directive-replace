@@ -35,6 +35,9 @@ module.exports = function (opts) {
             var templateUrlRegex = /templateUrl\:[^\'\"]*(\'|\")([^\'\"]+)(\'|\")/gm;
             var templateUrl = extractTemplateUrl(originalContent, templateUrlRegex, opts);
 
+            if (opts.domain)
+                templateUrl = templateUrl.substring(templateUrl.indexOf(opts.domain) + opts.domain.length);
+            
             if (!templateUrl) {
                 cb(null, file);
                 return;
