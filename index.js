@@ -1,90 +1,93 @@
 'use strict';
 
-var Minimize = require('minimize');
+var minify = require('html-minifier').minify;
 var through = require('through2');
+var stringEscape = require('js-string-escape');
 var gutil = require('gulp-util');
 var loadash = require('lodash');
 var path = require('path');
 var fs = require('fs');
+var PluginError = gutil.PluginError;
+var PluginLog = gutil.log;
 
 // Consts
 var PLUGIN_NAME = 'gulp-directive-replace';
 
+var templateUrlRegex = /templateUrl\:[^\'\"]*(\'|\")([^\'\"]+)(\'|\")/gm;
+
 module.exports = function (opts) {
+
     var defaultOpts = {
         root: '',
-        minify: {}
+        minifier: {
+            collapseWhitespace: true
+        }
     };
 
     opts = loadash.merge(defaultOpts, opts || {});
 
-    return through.obj(function(file, enc, cb) {
+    if (!opts.root) {
+        throw new PluginError(PLUGIN_NAME, 'You should specify the templates root path.');
+    }
+
+    return through.obj(function (file, encoding, next) {
 
         if (file.isNull()) {
-            cb(null, file);
-            return;
+            return next(null, file);
         }
 
         if (file.isStream()) {
-            cb(new gutil.PluginError(PLUGIN_NAME, 'Streaming not supported'));
-            return;
+            return next(new PluginError(PLUGIN_NAME, 'Streaming not supported'));
         }
 
-        try {
-            var originalContent = file.contents.toString();
-            var templateUrlRegex = /templateUrl\:[^\'\"]*(\'|\")([^\'\"]+)(\'|\")/gm;
-            var templateUrl = extractTemplateUrl(originalContent, templateUrlRegex, opts);
+        var content = file.contents.toString();
 
-            if (!templateUrl) {
-                cb(null, file);
-                return;
+        var matches, templateContent, templateInline, templatePath;
+        while ((matches = templateUrlRegex.exec(content)) !== null) {
+
+            templatePath = path.join(opts.root, matches[2]);
+
+            if (fileExistsSync(templatePath)) {
+
+                templateContent = extractTemplateUrl(templatePath);
+
+                templateInline = getTemplateInline(templateContent, opts.minifier);
+
+                content = replaceTemplateUrl(matches.index, matches[0].length, content, templateInline);
+
+                file.contents = new Buffer(content);
             }
 
-            var templateContent = getTemplateContent(templateUrl);
-            var minimize = new Minimize(opts.minify);
-
-            minimize.parse(templateContent, function(err, minimizedTemplate){
-
-                if (err) {
-                    cb(new gutil.PluginError(PLUGIN_NAME, err, {fileName: file.path}));
-                    return;
-                }
-
-                var escapedTemplate = escapeString(minimizedTemplate);
-                var injectedTemplate = 'template: \'' + escapedTemplate + '\'';
-                var replacedContent = originalContent.replace(templateUrlRegex, injectedTemplate);
-
-                file.contents = new Buffer(replacedContent);
-
-                cb(null, file);
-                return;
-            });
-
-        } catch (err) {
-            cb(new gutil.PluginError(PLUGIN_NAME, err, {fileName: file.path}));
-            return;
+            templatePath = null;
+            templateInline = null;
+            templateContent = null;
         }
+
+        return next(null, file);
     });
 };
 
-//////////////////////////////
 
-function extractTemplateUrl (contents, regex, opts) {
-    var match = regex.exec(contents);
-    var hasTemplateUrl = match && match[2];
-
-    return hasTemplateUrl ? path.join(opts.root, match[2]) : false;
+function fileExistsSync(filePath) {
+    try {
+        fs.statSync(filePath);
+    } catch (err) {
+        return err.code != 'ENOENT';
+    }
+    return true;
 }
 
-function getTemplateContent (templateUrl) {
-    return fs.readFileSync(templateUrl, 'utf8');
+function extractTemplateUrl(templateUrlPath) {
+    return fs.readFileSync(templateUrlPath, 'utf8');
 }
 
-function escapeString (string) {
-    var escapedString = string;
-    escapedString = escapedString ? escapedString.replace(/\\/g, '\\\\') : '';
-    escapedString = escapedString ? escapedString.replace(/'/g, "\\'") : '';
-
-    return escapedString;
+function getTemplateInline(content, options) {
+    var template = minify(content, options);
+    var templateEscaped = stringEscape(template);
+    return 'template: \'' + templateEscaped + '\'';
 }
 
+function replaceTemplateUrl(index, length, content, templateInline) {
+    var templateUrl = content.substr(index, length);
+    return content.replace(templateUrl, templateInline);
+}

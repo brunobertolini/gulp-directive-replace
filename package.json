@@ -1,10 +1,10 @@
 {
   "name": "gulp-directive-replace",
-  "version": "0.1.7",
+  "version": "0.2.0",
   "description": "A gulp task to replace templateUrl by html template",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha && istanbul cover _mocha -- -R spec"
   },
   "repository": {
     "type": "git",
@@ -22,15 +22,32 @@
     "template"
   ],
   "author": "Bruno Bertolini <dev@brunobertolini.com>",
+  "contributors": [
+    {
+      "name": "Marcel Araujo",
+      "email": "ceceldada@gmail.com",
+      "url": "https://github.com/marcelaraujo/"
+    }
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/brunobertolini/gulp-directive-replace/issues"
   },
   "homepage": "https://github.com/brunobertolini/gulp-directive-replace",
+  "devDependencies": {
+    "chai": "^3.4.1",
+    "event-stream": "^3.3.2",
+    "istanbul": "^0.4.1",
+    "mocha": "^2.3.4"
+  },
   "dependencies": {
-    "through2": "^0.4.1",
-    "lodash": "^2.4.1",
-    "gulp-util": "^2.2.14",
-    "minimize": "^1.0.0"
+    "fibers": "^1.0.7",
+    "gulp-util": "^3.0.7",
+    "html-minifier": "^1.0.0",
+    "js-string-escape": "^1.0.0",
+    "lodash": "^3.10.1",
+    "minimize": "^1.7.4",
+    "promise": "^7.0.4",
+    "through2": "^2.0.0"
   }
 }
