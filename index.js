@@ -8,20 +8,15 @@ var loadash = require('lodash');
 var path = require('path');
 var fs = require('fs');
 var PluginError = gutil.PluginError;
-var PluginLog = gutil.log;
 
 // Consts
 var PLUGIN_NAME = 'gulp-directive-replace';
-
-var templateUrlRegex = /templateUrl\:[^\'\"]*(\'|\")([^\'\"]+)(\'|\")/gm;
 
 module.exports = function (opts) {
 
     var defaultOpts = {
         root: '',
-        minifier: {
-            collapseWhitespace: true
-        }
+        transform: null
     };
 
     opts = loadash.merge(defaultOpts, opts || {});
@@ -40,33 +35,43 @@ module.exports = function (opts) {
             return next(new PluginError(PLUGIN_NAME, 'Streaming not supported'));
         }
 
-        var content = file.contents.toString();
+        var content = proxy(opts.transform || transform, null)(opts.root, String(file.contents));
 
-        var matches, templateContent, templateInline, templatePath;
-        while ((matches = templateUrlRegex.exec(content)) !== null) {
-
-            templatePath = path.join(opts.root, matches[2]);
-
-            if (fileExistsSync(templatePath)) {
-
-                templateContent = extractTemplateUrl(templatePath);
-
-                templateInline = getTemplateInline(templateContent, opts.minifier);
-
-                content = replaceTemplateUrl(matches.index, matches[0].length, content, templateInline);
-
-                file.contents = new Buffer(content);
-            }
-
-            templatePath = null;
-            templateInline = null;
-            templateContent = null;
-        }
+        file.contents = new Buffer(content);
 
         return next(null, file);
     });
 };
 
+function proxy(fn, context) {
+    var args = [].slice.call(arguments, 2);
+    return function () {
+        return fn.apply(context, args.concat([].slice.call(arguments)));
+    }
+}
+
+function transform(basePath, template) {
+
+    var templateUrlRegex = /templateUrl\:[^\'\"]*(\'|\")([^\'\"]+)(\'|\")/gm;
+
+    var matches, templateContent, templateInline, templatePath;
+    while ((matches = templateUrlRegex.exec(template)) !== null) {
+
+        templatePath = path.join(basePath, matches[2]);
+
+        if (fileExistsSync(templatePath)) {
+
+            templateContent = extractTemplateUrl(templatePath);
+
+            templateInline = getTemplateInline(templateContent, {
+                collapseWhitespace: true
+            });
+
+            template = replaceTemplateUrl(matches.index, matches[0].length, template, templateInline);
+        }
+    }
+    return template;
+}
 
 function fileExistsSync(filePath) {
     try {

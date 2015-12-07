@@ -48,6 +48,28 @@ describe('gulp-directive-replace', function() {
         }).to.throw('You should specify the templates root path.');
     });
 
+    it('should throw a stream event error', function (cb) {
+
+        var stream = directiveReplace({
+            root: path.join(__dirname, 'fixtures')
+        });
+
+        stream.once('data', function(file) {
+            expect(file.isStream()).to.be.true;
+        });
+
+        stream.once('error', function(error) {
+            expect(error).to.be.instanceof(Error);
+            expect(String(error.message).trim()).to.be.equal('Streaming not supported');
+        });
+
+        stream.once('end', cb);
+
+        stream.write(getFileStream());
+
+        stream.end();
+    });
+
     it('should do nothing when file content is null', function (cb) {
 
         var stream = directiveReplace({
@@ -84,24 +106,6 @@ describe('gulp-directive-replace', function() {
         stream.end();
     });
 
-    it('should replace the unique templateUrl found', function (cb) {
-
-        var stream = directiveReplace({
-            root: path.join(__dirname, 'fixtures')
-        });
-
-        stream.once('data', function(file) {
-            expect(file.isBuffer()).to.be.true;
-            expect(String(file.contents).trim()).to.be.equal(String(expected('example02.js').contents).trim());
-        });
-
-        stream.once('end', cb);
-
-        stream.write(fixture('example02.js'));
-
-        stream.end();
-    });
-
     it('should do nothing with templateUrl when file does not exist', function (cb) {
 
         var stream = directiveReplace({
@@ -116,6 +120,24 @@ describe('gulp-directive-replace', function() {
         stream.once('end', cb);
 
         stream.write(fixture('example03.js'));
+
+        stream.end();
+    });
+
+    it('should replace the unique templateUrl found', function (cb) {
+
+        var stream = directiveReplace({
+            root: path.join(__dirname, 'fixtures')
+        });
+
+        stream.once('data', function(file) {
+            expect(file.isBuffer()).to.be.true;
+            expect(String(file.contents).trim()).to.be.equal(String(expected('example02.js').contents).trim());
+        });
+
+        stream.once('end', cb);
+
+        stream.write(fixture('example02.js'));
 
         stream.end();
     });
@@ -138,24 +160,23 @@ describe('gulp-directive-replace', function() {
         stream.end();
     });
 
-    it('should throw a stream event error', function (cb) {
+    it('should have a transformation function when it is provided on config', function (cb) {
 
         var stream = directiveReplace({
-            root: path.join(__dirname, 'fixtures')
+            root: path.join(__dirname, 'fixtures'),
+            transform: function(basePath, template) {
+                return template;
+            }
         });
 
         stream.once('data', function(file) {
-            expect(file.isStream()).to.be.true;
-        });
-
-        stream.once('error', function(error) {
-            expect(error).to.be.instanceof(Error);
-            expect(String(error.message).trim()).to.be.equal('Streaming not supported');
+            expect(file.isBuffer()).to.be.true;
+            expect(String(file.contents).trim()).to.be.equal(String(expected('example05.js').contents).trim());
         });
 
         stream.once('end', cb);
 
-        stream.write(getFileStream());
+        stream.write(fixture('example05.js'));
 
         stream.end();
     });
