@@ -19,14 +19,13 @@ var directiveReplace = require('gulp-directive-replace');
 gulp.task('directives', function(){
 
   return gulp.src('./app/directives/*.js')
-    .pipe(directiveReplace())
+    .pipe(directiveReplace({root: 'app'))
     .pipe(gulp.dest('./'));
 
 });
 ```
 
 ## Options 
-
 
 ### root
 
@@ -51,11 +50,22 @@ Then, your directive templateUrl is: '/partials/yourpartial.html'
 The plugin will get template url and needs find that there is a *app* folder, but will not. You need inform to it by "root" option, like this:
 
 ```
-directiveReplace({root: 'app'})
+directiveReplace({
+    root: 'app'
+})
 ```
 
-### minify
+### transform
 
-Html minifier options.
+A custom transform function for templates.
 
-This options is passed directly to [Minimize](https://www.npmjs.com/package/minimize).
+```
+directiveReplace({
+    root: 'app',
+    transform: function(basePath, template) {
+        return template;
+    }
+})
+```
+
+basePath is the *root* config.
