@@ -52,18 +52,18 @@ function proxy(fn, context) {
 
 function transform(basePath, template) {
 
-    var templateUrlRegex = /templateUrl\:[^\'\"]*(\'|\")([^\'\"]+)(\'|\")/gm;
+    var templateUrlRegex = /templateUrl\s*([\:\=])[^\'\"]*(\'|\")([^\'\"]+)(\'|\")/gm;
 
     var matches, templateContent, templateInline, templatePath;
     while ((matches = templateUrlRegex.exec(template)) !== null) {
 
-        templatePath = path.join(basePath, matches[2]);
+        templatePath = path.join(basePath, matches[3]);
 
         if (fileExistsSync(templatePath)) {
 
             templateContent = extractTemplateUrl(templatePath);
 
-            templateInline = getTemplateInline(templateContent, {
+            templateInline = getTemplateInline(matches[1], templateContent, {
                 collapseWhitespace: true,
 				caseSensitive:true
             });
@@ -87,10 +87,10 @@ function extractTemplateUrl(templateUrlPath) {
     return fs.readFileSync(templateUrlPath, 'utf8');
 }
 
-function getTemplateInline(content, options) {
+function getTemplateInline(sign, content, options) {
     var template = minify(content, options);
     var templateEscaped = stringEscape(template);
-    return 'template: \'' + templateEscaped + '\'';
+    return 'template' + sign + ' \'' + templateEscaped + '\'';
 }
 
 function replaceTemplateUrl(index, length, content, templateInline) {
