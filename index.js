@@ -64,7 +64,8 @@ function transform(basePath, template) {
             templateContent = extractTemplateUrl(templatePath);
 
             templateInline = getTemplateInline(templateContent, {
-                collapseWhitespace: true
+                collapseWhitespace: true,
+				caseSensitive:true
             });
 
             template = replaceTemplateUrl(matches.index, matches[0].length, template, templateInline);
