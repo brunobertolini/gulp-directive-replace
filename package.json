@@ -1,6 +1,6 @@
 {
   "name": "gulp-directive-replace",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "A gulp task to replace templateUrl by html template",
   "main": "index.js",
   "scripts": {
