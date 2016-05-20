@@ -1,5 +1,9 @@
 # Gulp Directive Replace
 
+[![Build Status](https://travis-ci.org/brunobertolini/gulp-directive-replace.svg?branch=master)](https://travis-ci.org/brunobertolini/gulp-directive-replace)
+
+[![Coverage Status](https://coveralls.io/repos/github/brunobertolini/gulp-directive-replace/badge.svg?branch=master)](https://coveralls.io/github/brunobertolini/gulp-directive-replace?branch=master)
+
 [![Dependency Status](https://gemnasium.com/brunobertolini/gulp-directive-replace.svg)](https://gemnasium.com/brunobertolini/gulp-directive-replace)
 
 [![NPM](https://nodei.co/npm/gulp-directive-replace.png?downloads=true)](https://nodei.co/npm/gulp-directive-replace/)
