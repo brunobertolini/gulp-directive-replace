@@ -69,3 +69,19 @@ directiveReplace({
 ```
 
 basePath is the *root* config.
+
+### minify options
+
+This plugin use 'html-minifier' to minify html templates. So, you set your options like:
+
+```
+directiveReplace({
+    minify: {
+        yourRule: '...'
+    }
+})
+```
+
+collapseWhitespace and caseSensitive options are true by default.
+
+See options reference in [html-minifier docs](https://www.npmjs.com/package/html-minifier#options-quick-reference)

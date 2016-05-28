@@ -6,6 +6,8 @@ var fs                   = require('fs');
 var path                 = require('path');
 var gutil                = require('gulp-util');
 var expect               = require('chai').expect;
+var mockery              = require('mockery');
+var sinon                = require('sinon');
 
 var getFile = function(filepath) {
     return new gutil.File({
@@ -178,6 +180,44 @@ describe('gulp-directive-replace', function() {
 
         stream.write(fixture('example05.js'));
 
+        stream.end();
+    });
+
+    it('should pass minify options to html-minifier',  function(cb) {        
+        var minifyOpts = {
+            collapseWhitespace: false,
+            caseSensitive: false,
+            maxLineLength: 12345           
+        };
+
+        mockery.enable({
+            warnOnReplace: false,
+            warnOnUnregistered: false,
+            useCleanCache: true
+        });
+
+        mockery.registerMock('html-minifier', {
+            minify: function(content, opts) {
+                expect(opts).to.be.eql(minifyOpts);
+                return content;
+            }
+        });
+
+        directiveReplace = require('../');
+
+        var stream = directiveReplace({
+            root: path.join(__dirname, 'fixtures'),
+            minify: minifyOpts
+        });
+
+        stream.once('data', function(file) {
+            expect(file.isBuffer()).to.be.true;
+        });
+
+        stream.once('end', cb);
+        
+        stream.write(fixture('example05.js'));
+        
         stream.end();
     });
 });

@@ -35,7 +35,7 @@ module.exports = function (opts) {
             return next(new PluginError(PLUGIN_NAME, 'Streaming not supported'));
         }
 
-        var content = proxy(opts.transform || transform, null)(opts.root, String(file.contents));
+        var content = proxy(opts.transform || transform, null)(opts.root, String(file.contents), opts.minify);
 
         file.contents = new Buffer(content);
 
@@ -50,7 +50,7 @@ function proxy(fn, context) {
     }
 }
 
-function transform(basePath, template) {
+function transform(basePath, template, minifyOpts) {
 
     var templateUrlRegex = /templateUrl\s*([\:\=])[^\'\"]*(\'|\")([^\'\"]+)(\'|\")/gm;
 
@@ -63,10 +63,10 @@ function transform(basePath, template) {
 
             templateContent = extractTemplateUrl(templatePath);
 
-            templateInline = getTemplateInline(matches[1], templateContent, {
+            templateInline = getTemplateInline(matches[1], templateContent, loadash.merge({
                 collapseWhitespace: true,
-				caseSensitive:true
-            });
+                caseSensitive:true
+            }, minifyOpts));
 
             template = replaceTemplateUrl(matches.index, matches[0].length, template, templateInline);
         }
