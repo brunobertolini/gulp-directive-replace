@@ -7,7 +7,6 @@ var path                 = require('path');
 var gutil                = require('gulp-util');
 var expect               = require('chai').expect;
 var mockery              = require('mockery');
-var sinon                = require('sinon');
 
 var getFile = function(filepath) {
     return new gutil.File({
