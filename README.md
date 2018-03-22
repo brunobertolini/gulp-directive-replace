@@ -19,7 +19,7 @@ var directiveReplace = require('gulp-directive-replace');
 gulp.task('directives', function(){
 
   return gulp.src('./app/directives/*.js')
-    .pipe(directiveReplace({root: 'app'))
+    .pipe(directiveReplace({root: 'app'}))
     .pipe(gulp.dest('./'));
 
 });
